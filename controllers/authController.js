@@ -17,7 +17,7 @@ function tokenSign(id, email) {
         if (err) {
           rej('Error')
         }
-        console.log('first', token);
+        console.log('new token:', token);
         res(token);
       }
     );
@@ -27,7 +27,6 @@ function tokenSign(id, email) {
 
 exports.createUser = function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-
   const { fullName, email, dob, password } = req.body;
   const hashPassword = createHash('sha256').update(password).digest('hex');
 
