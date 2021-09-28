@@ -1,4 +1,3 @@
-"use strict";
 const db = require('../models/index');
 const { createHash } = require("crypto");
 const jwt = require("jsonwebtoken");
