@@ -48,7 +48,7 @@ exports.createUser = function (req, res) {
       res.status(200).send({ token });
     })
     .catch(err => {
-      res.status(401).json({
+      res.status(403).json({
         message: `${err}`
       });
     });
@@ -56,10 +56,10 @@ exports.createUser = function (req, res) {
 
 exports.loginUser = function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-
+  console.log(req.body);
   const { email, password } = req.body;
   const hashPassword = createHash('sha256').update(password).digest('hex');
-
+  let sendUser = {};
   db.User.findOne({ where: { email } })
     .then(user => {
       if (!user) {
@@ -69,10 +69,20 @@ exports.loginUser = function (req, res) {
       if (hashPassword !== user.password) {
         throw new Error("Invalid password");
       }
-      return tokenSign(user.id, user.email);
+      sendUser = {
+        name: user.fullName,
+        email: user.email,
+        dob: user.dob,
+        id: user.id
+      };
+      return token = tokenSign(user.id, user.email);
     })
     .then(token => {
-      res.status(200).send({ token });
+      const body = {
+        token,
+        user: sendUser
+      }
+      res.status(200).send(body);
     })
     .catch(err => {
       res.status(403).json({

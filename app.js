@@ -10,17 +10,17 @@ const db = require('./models/index');
 
 const app = express();
 
-db.sequelize.sync().then(() => {
+// db.sequelize.sync().then(() => {
   app.listen(3010, function (err) {
     if (err) {
       console.log('Server is not started', err.message)
-    } else {
-      console.log("Server started...");
+      process.exit(1)
     }
+    console.log("Server started...");
   });
-}).catch(err => {
-  console.log(`Server starting error: ${err}`);
-});
+// }).catch(err => {
+//   console.log(`Server starting error: ${err}`);
+// });
 
 app.use(cors());
 app.use(bodyParser.json());
