@@ -94,16 +94,26 @@ exports.loginUser = function (req, res) {
 exports.loginUserByToken = function (req, res) {
 
   const id = req.userId;
-
+  let sendUser = {};
   db.User.findOne({ where: { id } })
     .then(user => {
       if (!user) {
         throw new Error("This user does not exist");
       };
+      sendUser = {
+        name: user.fullName,
+        email: user.email,
+        dob: user.dob,
+        id: user.id
+      };
       return tokenSign(user.id, user.email)
     })
     .then(token => {
-      res.status(200).send({ token });
+      const body = {
+        token,
+        user: sendUser
+      }
+      res.status(200).send(body);
     })
     .catch(err => {
       res.status(403).json({
