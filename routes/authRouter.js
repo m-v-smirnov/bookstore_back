@@ -5,11 +5,8 @@ const { emailPassIsValid } = require('../middlewares/index');
 const authRouter = express.Router();
 
 
-authRouter.post("/reg", emailPassIsValid, authController.createUser);
-//authRouter.post("/sign-up", emailPassIsValid, authController.createUser);
-//authRouter.post("/reg", authController.createUser);
+authRouter.post("/registration", emailPassIsValid, authController.createUser);
 authRouter.post("/login", authController.loginUser);
-//authRouter.post("/login-token", authController.loginUserByToken);
 authRouter.get("/login-token", middlewares.checkUserToken, authController.loginUserByToken);
 
 

@@ -28,7 +28,8 @@ exports.createUser = function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const { fullName, email, dob, password } = req.body;
   const hashPassword = createHash('sha256').update(password).digest('hex');
-
+  let sendUser = {};
+  //console.log(req.body);
   db.User.findOne({ where: { email: email }, raw: true })
     .then(user => {
       if (user) {
@@ -42,10 +43,20 @@ exports.createUser = function (req, res) {
       })
     })
     .then(user => {
+      sendUser = {
+        name: user.fullName,
+        email: user.email,
+        dob: user.dob,
+        id: user.id
+      };
       return tokenSign(user.id, user.email);
     })
     .then(token => {
-      res.status(200).send({ token });
+      const body = {
+        token,
+        user: sendUser
+      }
+      res.status(200).send(body);
     })
     .catch(err => {
       res.status(403).json({
@@ -56,7 +67,7 @@ exports.createUser = function (req, res) {
 
 exports.loginUser = function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  console.log(req.body);
+  //console.log(req.body);
   const { email, password } = req.body;
   const hashPassword = createHash('sha256').update(password).digest('hex');
   let sendUser = {};

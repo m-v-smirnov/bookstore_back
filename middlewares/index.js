@@ -7,7 +7,6 @@ const secretKey = process.env.SECRET_KEY;
 exports.checkUserToken = async function (req, res, next) {
   let token = '';
   let decoded = {};
-  //console.log("@@@@@@@@@@@", req.headers);
   try {
     token = req.headers.authorization.split(' ')[1];
     console.log(token);
