@@ -8,7 +8,7 @@ exports.editUser = function (req, res) {
   const { fullName, dob, password } = req.body;
   const id = req.userId;
   let hashPassword = createHash('sha256').update(password).digest('hex');
-  
+
   db.User.update({
     fullName,
     dob,

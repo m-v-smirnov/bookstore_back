@@ -5,6 +5,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser')
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
+const bookRouter = require("./routes/bookRouter");
 const db = require('./models/index');
 
 
@@ -27,3 +28,4 @@ app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
+app.use("/books", bookRouter);
