@@ -24,12 +24,37 @@ function tokenSign(id, email) {
   // return jwt.sign({ id, email }, secretKey, { expiresIn: 1000 });
 }
 
-exports.createUser = function (req, res) {
+exports.createUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const { fullName, email, dob, password } = req.body;
   const hashPassword = createHash('sha256').update(password).digest('hex');
   let sendUser = {};
   //console.log(req.body);
+
+  try {
+    const user = await db.user.findOne(fullName, email, dob, password);
+    if (user) {
+      throw new Error("User with that email already exists");
+    }
+  } catch (error) {
+    return res.status(403).json({
+      message: `${error}`
+    });
+  }
+
+  try {
+    const user = await db.user.create(fullName, email, dob, password);
+    sendUser = {
+      name: user.fullName,
+      email: user.email,
+      dob: user.dob,
+      id: user.id
+    };
+    const token = await tokenSign(user.id, user.email);
+  } catch (error) {
+    
+  }
+//@@@@@@@@@@@@@
   db.User.findOne({ where: { email: email }, raw: true })
     .then(user => {
       if (user) {

@@ -1,21 +1,17 @@
 const fs = require('fs');
 const path = require('path');
-const Sequelize = require('sequelize');
 const basename = path.basename(__filename);
-const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.json')[env];
-const db = {};
+const User = require('./user');
+const mongoose = require("mongoose");
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(
-    config.database,
-    config.username,
-    config.password,
-    config);
-}
+let db = {};
+
+mongoose.connect("mongodb://localhost:27017/bookstoreDb", {
+  useUnifiedTopology: true,
+  useNewUrlParser: true,
+}, function (err) {
+  if (err) return console.log(err);
+});
 
 fs
   .readdirSync(__dirname)
@@ -25,20 +21,19 @@ fs
       && (file.slice(-3) === '.js');
   })
   .forEach(file => {
-    const model = require(path.join(__dirname, file))(
-      sequelize,
-      Sequelize.DataTypes
-    );
-    db[model.name] = model;
+    const model = require(path.join(__dirname, file))
+    db[file.slice(0, -3)] = model;
   });
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db);
-  }
-});
+// console.log(db)
+// db.user.create({
+//   "fullname": "user5",
+//   "email": "user5@mail.ru",
+//   "password": "need update",
+//   "dob": "1990-06-26",
+//   "createdAt": Date.now(),
+//   "updatedAt": Date.now()
+// });
 
-db.sequelize = sequelize;
-db.Sequelize = Sequelize;
 
 module.exports = db;
