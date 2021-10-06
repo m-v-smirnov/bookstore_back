@@ -26,7 +26,7 @@ exports.checkUserToken = async function (req, res, next) {
 
   const { id, email } = decoded;
   try {
-    const user = await db.User.findOne({ where: { id, email } })
+    const user = await db.user.findOne({ _id : id, email })
 
     if (!user) {
       throw new Error("Authorisation error");
