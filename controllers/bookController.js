@@ -30,19 +30,42 @@ exports.addNewBook = function (req, res) {
     });
 };
 
-exports.findBooksByGenre = function (req, res) {
+exports.findBooks = function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  const { GenreId } = req.body;
-
-  db.Genre.findByPk(GenreId)
-    .then(genre => {
-      if (!genre) {
-        throw new Error("No such genre at list");
+  const { GenreId, AuthorId, UserId } = req.body;
+  let includeOptions = [];
+  
+  if (GenreId) {
+    includeOptions = [...includeOptions,{
+      model: db.Genre,
+      where: {
+        id: GenreId
       }
-      return genre.getBooks()
-    })
+    }];
+  }
+  if (AuthorId) {
+    includeOptions = [...includeOptions,{
+      model: db.Author,
+      where: {
+        id: AuthorId
+      }
+    }];
+  }
+  if (UserId) {
+    includeOptions = [...includeOptions,{
+      model: db.User,
+      where: {
+        id: UserId
+      }
+    }];
+  }
+
+console.log(`options ${includeOptions}`);
+  db.Book.findAll({
+    include: includeOptions
+  })
     .then(books => {
-      if (!books) {
+      if (books.length === 0) {
         throw new Error("No such books");
       }
       const body = {
@@ -55,6 +78,4 @@ exports.findBooksByGenre = function (req, res) {
         message: `${error}`
       });
     });
-
-
 };
