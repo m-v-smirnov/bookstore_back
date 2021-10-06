@@ -25,6 +25,7 @@ function tokenSign(id, email) {
 }
 
 exports.createUser = async function (req, res) {
+  
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const { fullName, email, dob, password } = req.body;
   const hashPassword = createHash('sha256').update(password).digest('hex');
@@ -51,43 +52,48 @@ exports.createUser = async function (req, res) {
       id: user.id
     };
     const token = await tokenSign(user.id, user.email);
+    const body = {
+      token,
+      user: sendUser
+    }
+    res.status(200).send(body);
   } catch (error) {
-    
+    res.status(403).json({ message: `${err}` });
   }
-//@@@@@@@@@@@@@
-  db.User.findOne({ where: { email: email }, raw: true })
-    .then(user => {
-      if (user) {
-        throw new Error("User with that email already exists");
-      }
-      return db.User.create({
-        fullName,
-        email,
-        dob,
-        password: hashPassword
-      })
-    })
-    .then(user => {
-      sendUser = {
-        name: user.fullName,
-        email: user.email,
-        dob: user.dob,
-        id: user.id
-      };
-      return tokenSign(user.id, user.email);
-    })
-    .then(token => {
-      const body = {
-        token,
-        user: sendUser
-      }
-      res.status(200).send(body);
-    })
-    .catch(err => {
-      res.status(403).json({
-        message: `${err}`
-      });
-    });
+// //@@@@@@@@@@@@@
+//   db.User.findOne({ where: { email: email }, raw: true })
+//     .then(user => {
+//       if (user) {
+//         throw new Error("User with that email already exists");
+//       }
+//       return db.User.create({
+//         fullName,
+//         email,
+//         dob,
+//         password: hashPassword
+//       })
+//     })
+//     .then(user => {
+//       sendUser = {
+//         name: user.fullName,
+//         email: user.email,
+//         dob: user.dob,
+//         id: user.id
+//       };
+//       return tokenSign(user.id, user.email);
+//     })
+//     .then(token => {
+//       const body = {
+//         token,
+//         user: sendUser
+//       }
+//       res.status(200).send(body);
+//     })
+//     .catch(err => {
+//       res.status(403).json({
+//         message: `${err}`
+//       });
+//     });
 }
 
 exports.loginUser = function (req, res) {

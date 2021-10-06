@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const basename = path.basename(__filename);
-const User = require('./user');
 const mongoose = require("mongoose");
 
 let db = {};
