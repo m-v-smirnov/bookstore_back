@@ -1,11 +1,15 @@
 const db = require('../models/index');
 const { createHash } = require("crypto");
 const jwt = require("jsonwebtoken");
-const { log } = require('console');
 const secretKey = process.env.SECRET_KEY;
 
-function tokenSign(id, email) {
 
+// const { promisify } = require('util')
+// const tokenSignAsync = promisify(jwt.sign);
+// tokenSignAsync({id, email}, secretKey, {})
+
+
+function tokenSign(id, email) {
   return new Promise((res, rej) => {
     jwt.sign({
       id,
@@ -42,7 +46,6 @@ exports.createUser = async function (req, res) {
       message: `${error}`
     });
   }
-
   try {
     const user = await db.user.create({
       fullName,

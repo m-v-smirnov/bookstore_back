@@ -26,12 +26,13 @@ exports.checkUserToken = async function (req, res, next) {
 
   const { id, email } = decoded;
   try {
-    const user = await db.user.findOne({ _id : id, email })
+    const user = await db.user.findOne({ _id: id, email })
 
     if (!user) {
       throw new Error("Authorisation error");
     };
     req.userId = id;
+    req.userData = user;
     next()
   } catch (error) {
     return res.status(401).json({
@@ -39,6 +40,14 @@ exports.checkUserToken = async function (req, res, next) {
     });
   }
 };
+
+// const emailPassIsValid = (req, res, next) => {
+//   // logic
+//   next()
+// }
+
+// // authRouter.post("/registration", emailPassIsValid, authController.createUser);
+
 
 exports.emailPassIsValid = [
   body('email').isEmail(),

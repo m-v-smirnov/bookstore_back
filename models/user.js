@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const userScheme = new Schema(
   {
-    fullname: String,
+    fullName: String,
     email: String,
     password: String,
     dob: Date,

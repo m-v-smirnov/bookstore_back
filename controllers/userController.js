@@ -2,45 +2,45 @@ const db = require('../models/index');
 const { createHash } = require("crypto");
 
 
-exports.editUser = function (req, res) {
+exports.editUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
 
   const { fullName, dob, password } = req.body;
   const id = req.userId;
   let hashPassword = createHash('sha256').update(password).digest('hex');
 
-  db.User.update({
-    fullName,
-    dob,
-    password: hashPassword
-  },
-    { where: { id } })
-    .then(() => {
-      res.status(200).json({
-        message: `Changes applied`
+  try {
+    const user = await db.user.updateOne(
+      { _id: id },
+      {
+        fullName,
+        dob,
+        password: hashPassword,
+        updatedAt: Date.now()
       });
-    })
-    .catch(err => {
-      res.status(400).json({
-        message: `Server send error: ${err.message}`
-      });
+    res.status(200).json({
+      message: `Changes applied`
     });
+  } catch (error) {
+    res.status(400).json({
+      message: `Server send error: ${error.message}`
+    });
+  }
 
 };
 
-exports.deleteUser = function (req, res) {
+exports.deleteUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const id = req.userId;
 
-  db.User.destroy({ where: { id } })
-    .then(() => {
-      res.status(200).json({
-        message: `User deleted`
-      });
-    })
-    .catch(err => {
-      res.status(400).json({
-        message: `${err}`
-      });
+  try {
+    const user = await db.user.deleteOne({ _id: id });
+    res.status(200).json({
+      message: `User deleted`
     });
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
 };

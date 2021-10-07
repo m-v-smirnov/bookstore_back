@@ -7,7 +7,7 @@ const basename = path.basename(__filename);
 
 let db = {};
 
-mongoose.connect("mongodb://localhost:27017/bookstoreDb", {
+mongoose.connect(process.env.DATABASE_URL, {
   useUnifiedTopology: true,
   useNewUrlParser: true,
 }, function (err) {
@@ -26,12 +26,9 @@ fs
     db[file.slice(0, -3)] = model;
   });
 
-// console.log(db)
-// db.user.create({
-//   "fullname": "user5",
-//   "email": "user5@mail.ru",
-//   "password": "need update",
-//   "dob": "1990-06-26",
+
+// db.author.create({
+//   "name": "author5",
 //   "createdAt": Date.now(),
 //   "updatedAt": Date.now()
 // });

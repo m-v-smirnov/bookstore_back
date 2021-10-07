@@ -1,0 +1,20 @@
+findOne ({
+  title: 'title12312'
+})
+
+db.book.aggregate([
+  {
+    $match: {
+      age: { $gte: 1999 }
+    }
+  },
+  {
+    $lookup: {
+      from: 'User', //<collection to join>,
+      localField: 'userId', //<field from the input documents>,
+      foreignField: '_id',// <field from the documents of the "from" collection>,
+      as: 'userData' //<output array field>
+    }
+  },
+  {},
+])
