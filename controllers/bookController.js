@@ -3,11 +3,13 @@ const db = require('../models/index');
 
 exports.addNewBook = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  const userId = req.userData._id;
-  const { title, description, authorId, genreId } = req.body;
+  const userId = req.userData._id.toString();
+  const { title, description, author, genreId } = req.body;
+  
+  console.log(`@@@@@@@genre id :  ${genreId}     author : ${author}`);
 
   try {
-    const book = await db.book.findOne({ title, authorId });
+    const book = await db.book.findOne({ title, author });
     if (book) {
       throw new Error("That book already exists");
     }
@@ -22,7 +24,7 @@ exports.addNewBook = async function (req, res) {
     const book = await db.book.create({
       title,
       description,
-      authorId,
+      author,
       genreId,
       userId
     });
