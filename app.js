@@ -15,6 +15,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
+app.use('/static',express.static(__dirname + '/public'));
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/books", bookRouter);

@@ -5,8 +5,6 @@ exports.addNewBook = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const userId = req.userData._id.toString();
   const { title, description, author, genreId } = req.body;
-  
-  console.log(`@@@@@@@genre id :  ${genreId}     author : ${author}`);
 
   try {
     const book = await db.book.findOne({ title, author });
@@ -36,6 +34,20 @@ exports.addNewBook = async function (req, res) {
       message: `${error}`
     });
   }
+};
+
+exports.uploadAvatar = async function (req,res) {
+  if(!req.file) {
+    return res.status(400).json({ message: "Uploading error" });
+  }
+  const fileData = req.file;
+  console.log(fileData.filename);
+  const body = {
+    fileName : fileData.filename,
+  };
+  res.status(200).send(body);
+
+
 };
 
 exports.findBooks = async function (req, res) {
