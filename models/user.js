@@ -7,6 +7,7 @@ const userScheme = new Schema(
     email: String,
     password: String,
     dob: Date,
+    avatarRefId: { type: Schema.Types.ObjectId, ref: 'File' },
     createdAt: Date,
     updatedAt: Date
   },

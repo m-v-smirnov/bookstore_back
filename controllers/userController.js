@@ -5,16 +5,26 @@ const { createHash } = require("crypto");
 exports.editUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
 
-  const { fullName, dob, password } = req.body;
-  const id = req.userId;
+  const { fullName, dob, password, avatarRef } = req.body;
+  const _id = req.userData._id;
   let hashPassword = createHash('sha256').update(password).digest('hex');
+  let avatarRefId = '';
+
+  try {
+    avatarRefId = await db.file.findOne({ fileRef: avatarRef });
+  } catch (error) {
+    return res.status(400).json({
+      message: `${error}`
+    });
+  }
 
   try {
     const user = await db.user.updateOne(
-      { _id: id },
+      { _id },
       {
         fullName,
         dob,
+        avatarRefId,
         password: hashPassword,
         updatedAt: Date.now()
       });
@@ -27,6 +37,23 @@ exports.editUser = async function (req, res) {
     });
   }
 
+};
+
+exports.getUserByID = async function (req, res) {
+  if (!req.body) return res.status(400).json({ message: "Empty request body" });
+  const _id = req.userData._id;
+  console.log(`>>>: ${_id}`);
+  let user = {};
+
+  try {
+    user = await db.user.findOne({ _id }).populate('avatarRefId');
+    body = {user};
+    res.status(200).send(body);
+  } catch (error) {
+    return res.status(400).json({
+      message: `${error}`
+    });
+  }
 };
 
 exports.deleteUser = async function (req, res) {

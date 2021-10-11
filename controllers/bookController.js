@@ -4,7 +4,16 @@ const db = require('../models/index');
 exports.addNewBook = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const userId = req.userData._id.toString();
-  const { title, description, author, genreId } = req.body;
+  const { title, description, author, genreId, cover, price, amount, sale} = req.body;
+  let coverRefId='';
+  
+  try {
+    coverRefId = await db.file.findOne({fileRef : cover});
+  } catch (error) {
+    return res.status(400).json({
+      message: `${error}`
+    });
+  }
 
   try {
     const book = await db.book.findOne({ title, author });
@@ -24,7 +33,11 @@ exports.addNewBook = async function (req, res) {
       description,
       author,
       genreId,
-      userId
+      userId,
+      coverRefId,
+      price,
+      amount,
+      sale
     });
     res.status(200).json({
       message: `Book added`
@@ -40,10 +53,17 @@ exports.uploadAvatar = async function (req,res) {
   if(!req.file) {
     return res.status(400).json({ message: "Uploading error" });
   }
-  const fileData = req.file;
-  console.log(fileData.filename);
+  const fileRef = req.file.filename;
+  try {
+    db.file.create({fileRef});
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+
   const body = {
-    fileName : fileData.filename,
+    fileName : fileRef,
   };
   res.status(200).send(body);
 
@@ -52,7 +72,8 @@ exports.uploadAvatar = async function (req,res) {
 
 exports.findBooks = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  const { genreId, authorId, userId } = req.body;
+  const { genreId, author} = req.body;
+  const userId = req.userData._id.toString();
   let includeOptions = {};
 
   // const includeOptions = createFitler(req.body);!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -61,8 +82,8 @@ exports.findBooks = async function (req, res) {
   if (genreId) {
     includeOptions = { ...includeOptions, genreId }
   }
-  if (authorId) {
-    includeOptions = { ...includeOptions, authorId }
+  if (author) {
+    includeOptions = { ...includeOptions, author }
   }
   if (userId) {
     includeOptions = { ...includeOptions, userId }
@@ -72,7 +93,6 @@ exports.findBooks = async function (req, res) {
   try {
     const books = await db.book.find(includeOptions)
       .populate('genreId')
-      .populate('authorId');
     if (books.length === 0) {
       throw new Error("No such books");
     }

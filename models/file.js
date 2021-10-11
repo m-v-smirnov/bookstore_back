@@ -4,8 +4,8 @@ const Schema = mongoose.Schema;
 const fileScheme = new Schema(
   {
     fileRef: String,
-    UserId: { type: Schema.Types.ObjectId, ref: 'User' },
-    BookId: { type: Schema.Types.ObjectId, ref: 'Book' },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    bookId: { type: Schema.Types.ObjectId, ref: 'Book' },
     createdAt: Date,
     updatedAt: Date
   },

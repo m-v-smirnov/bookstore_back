@@ -16,7 +16,7 @@ function tokenSign(id, email) {
       email
     },
       secretKey,
-      { expiresIn: 1000 },
+      { expiresIn: 6000 },
       function (err, token) {
         if (err) {
           rej('Error')
