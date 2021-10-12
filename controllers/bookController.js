@@ -55,9 +55,9 @@ exports.uploadAvatar = async function (req,res) {
   }
   const fileRef = req.file.filename;
   try {
-    db.file.create({fileRef});
+    await db.file.create({fileRef});
   } catch (error) {
-    res.status(400).json({
+    return res.status(400).json({
       message: `${error}`
     });
   }
@@ -65,7 +65,7 @@ exports.uploadAvatar = async function (req,res) {
   const body = {
     fileName : fileRef,
   };
-  res.status(200).send(body);
+  return res.status(200).send(body);
 
 
 };
@@ -84,6 +84,7 @@ exports.findBooks = async function (req, res) {
   }
   if (author) {
     includeOptions = { ...includeOptions, author }
+    // includeOptions['author'] = author
   }
   if (userId) {
     includeOptions = { ...includeOptions, userId }
