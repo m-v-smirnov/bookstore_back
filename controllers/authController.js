@@ -36,6 +36,14 @@ exports.createUser = async function (req, res) {
   const hashPassword = createHash('sha256').update(password).digest('hex');
   let sendUser = {};
 
+  const fileRef = "defaultavatar.png";
+  let avatarRefId;
+  try {
+    avatarRefId = (await db.file.findOne({ fileRef }))._id;
+  } catch (error) {
+    console.log(error);
+  }
+
   try {
     const user = await db.user.findOne({ email });
     if (user) {
@@ -52,14 +60,16 @@ exports.createUser = async function (req, res) {
       email,
       dob,
       password: hashPassword,
+      avatarRefId,
       createdAt: Date.now(),
       updatedAt: Date.now()
     });
     sendUser = {
-      name: user.fullName,
+      fullName: user.fullName,
       email: user.email,
       dob: user.dob,
-      id: user.id
+      id: user.id,
+      avatarRef: fileRef
     };
     const token = await tokenSign(user.id, user.email);
     const body = {
@@ -79,7 +89,7 @@ exports.loginUser = async function (req, res) {
   let sendUser = {};
 
   try {
-    const user = await db.user.findOne({ email });
+    const user = await db.user.findOne({ email }).populate('avatarRefId');
     if (!user) {
       throw new Error("This user does not exist");
     };
@@ -87,10 +97,11 @@ exports.loginUser = async function (req, res) {
       throw new Error("Invalid password");
     }
     sendUser = {
-      name: user.fullName,
+      fullName: user.fullName,
       email: user.email,
       dob: user.dob,
-      id: user.id
+      id: user.id,
+      avatarRef: user.avatarRefId.fileRef,
     };
     const token = await tokenSign(user.id, user.email);
     const body = {
@@ -108,15 +119,16 @@ exports.loginUserByToken = async function (req, res) {
   const id = req.userId;
   let sendUser = {};
   try {
-    const user = await db.user.findOne({ _id: id });
+    const user = await db.user.findOne({ _id: id }).populate('avatarRefId');
     if (!user) {
       throw new Error("This user does not exist");
     };
     sendUser = {
-      name: user.fullName,
+      fullName: user.fullName,
       email: user.email,
       dob: user.dob,
-      id: user.id
+      id: user.id,
+      avatarRef: user.avatarRefId.fileRef,
     };
     const token = await tokenSign(user.id, user.email);
     const body = {

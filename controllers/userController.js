@@ -28,9 +28,25 @@ exports.editUser = async function (req, res) {
         password: hashPassword,
         updatedAt: Date.now()
       });
-    res.status(200).json({
-      message: `Changes applied`
+  } catch (error) {
+    res.status(400).json({
+      message: `Server send error: ${error.message}`
     });
+  }
+
+  try {
+    const user = await db.user.findOne({ _id }).populate('avatarRefId');
+    sendUser = {
+      fullName: user.fullName,
+      email: user.email,
+      dob: user.dob,
+      id: user.id,
+      avatarRef: user.avatarRefId.fileRef,
+    };
+    const body = {
+      user: sendUser
+    }
+    res.status(200).send(body)
   } catch (error) {
     res.status(400).json({
       message: `Server send error: ${error.message}`
