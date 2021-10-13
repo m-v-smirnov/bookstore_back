@@ -72,7 +72,7 @@ exports.uploadAvatar = async function (req,res) {
 
 exports.findBooks = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  const { genreId, author} = req.body;
+  const { genreId, author, getMyBooks} = req.body;
   const userId = req.userData._id.toString();
   let includeOptions = {};
 
@@ -86,14 +86,15 @@ exports.findBooks = async function (req, res) {
     includeOptions = { ...includeOptions, author }
     // includeOptions['author'] = author
   }
-  if (userId) {
-    includeOptions = { ...includeOptions, userId }
-  }
+   if (getMyBooks) {
+     includeOptions = { ...includeOptions, userId }
+   }
 
 
   try {
     const books = await db.book.find(includeOptions)
       .populate('genreId')
+      .populate('coverRefId')
     if (books.length === 0) {
       throw new Error("No such books");
     }
