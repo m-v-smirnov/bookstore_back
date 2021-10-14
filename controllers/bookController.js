@@ -73,7 +73,7 @@ exports.uploadAvatar = async function (req,res) {
 exports.findBooks = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const { genreId, author, getMyBooks} = req.body;
-  const userId = req.userData._id.toString();
+  if (getMyBooks) { const userId = req.userData._id.toString(); }
   let includeOptions = {};
 
   // const includeOptions = createFitler(req.body);!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
