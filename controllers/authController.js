@@ -78,7 +78,7 @@ exports.createUser = async function (req, res) {
     }
     res.status(200).send(body);
   } catch (error) {
-    res.status(403).json({ message: `${err}` });
+    res.status(403).json({ message: `${error}` });
   }
 }
 
@@ -101,7 +101,7 @@ exports.loginUser = async function (req, res) {
       email: user.email,
       dob: user.dob,
       id: user.id,
-      avatarRef: user.avatarRefId.fileRef,
+      avatarRef: (user.avatarRefId ? user.avatarRefId.fileRef : "defaultavatar.png"),
     };
     const token = await tokenSign(user.id, user.email);
     const body = {
@@ -128,7 +128,7 @@ exports.loginUserByToken = async function (req, res) {
       email: user.email,
       dob: user.dob,
       id: user.id,
-      avatarRef: user.avatarRefId.fileRef,
+      avatarRef: (user.avatarRefId ? user.avatarRefId.fileRef : "defaultavatar.png"),
     };
     const token = await tokenSign(user.id, user.email);
     const body = {
@@ -137,6 +137,6 @@ exports.loginUserByToken = async function (req, res) {
     }
     res.status(200).send(body);
   } catch (error) {
-    res.status(403).json({ message: `${err}` });
+    res.status(403).json({ message: `${error}` });
   }
 };
