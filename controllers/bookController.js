@@ -70,31 +70,13 @@ exports.uploadAvatar = async function (req,res) {
 
 };
 
-exports.findBooks = async function (req, res) {
-  if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  const { genreId, author, getMyBooks} = req.body;
-  if (getMyBooks) { const userId = req.userData._id.toString(); }
-  let includeOptions = {};
-
-  // const includeOptions = createFitler(req.body);!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
-  if (genreId) {
-    includeOptions = { ...includeOptions, genreId }
-  }
-  if (author) {
-    includeOptions = { ...includeOptions, author }
-    // includeOptions['author'] = author
-  }
-   if (getMyBooks) {
-     includeOptions = { ...includeOptions, userId }
-   }
-
+exports.getMyBooks = async function (req, res) {
+  
+  const userId = req.userData._id.toString();
 
   try {
-    const books = await db.book.find(includeOptions)
-      .populate('genreId')
-      .populate('coverRefId')
+    const books = await db.book.find({userId})
+    .populate("coverRefId")
     if (books.length === 0) {
       throw new Error("No such books");
     }
@@ -107,6 +89,57 @@ exports.findBooks = async function (req, res) {
       message: `${error}`
     });
   }
+};
+
+exports.getBooks = async function (req,res) {
+  const { page } = req.query;
+  const limit = Number(process.env.BOOKS_LIMIT);
+  
+  // console.log(`limit : ${limit},    page# : ${page}`);
+
+  try {
+    const allBooks = await db.book.find()
+
+    const books = await db.book.find()
+    .skip((page -1) * limit)
+    .limit(limit)
+    .populate("coverRefId")
+    .populate("genreId")
+    if (books.length === 0) {
+      throw new Error("No such books");
+    }
+
+    const totalDocs = allBooks.length;
+    const totalPages = Math.ceil(totalDocs/limit);
+    const hasNextPage = (Number(page) < totalPages);
+    const hasPrevPage = (Number(page) > 1);
+    const nextPage = hasNextPage ? (+page +1) : null;
+    const prevPage = hasPrevPage ? (+page -1) : null;
+    const pagingCounter = (page - 1) * limit;
+
+    const pagination = {
+      totalDocs,
+      totalPages,
+      page,
+      limit,
+      hasNextPage,
+      hasPrevPage,
+      nextPage,
+      prevPage,
+      pagingCounter
+    };
+
+    const body = {
+      books,
+      pagination
+    }
+    res.status(200).send(body);
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+
 };
 
 exports.getGenres = async function (req, res) {

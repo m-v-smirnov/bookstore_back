@@ -5,7 +5,9 @@ const { createHash } = require("crypto");
 exports.editUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
 
+ 
   const { fullName, dob, password, avatarRef } = req.body;
+
   const _id = req.userData._id;
   let hashPassword = createHash('sha256').update(password).digest('hex');
   let avatarRefId = '';
