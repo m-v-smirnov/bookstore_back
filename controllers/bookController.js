@@ -37,7 +37,9 @@ exports.addNewBook = async function (req, res) {
       coverRefId,
       price,
       amount,
-      sale
+      sale,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
     });
     res.status(200).json({
       message: `Book added`
@@ -92,15 +94,20 @@ exports.getMyBooks = async function (req, res) {
 };
 
 exports.getBooks = async function (req,res) {
-  const { page } = req.query;
+  const { page, genreId } = req.query;
   const limit = Number(process.env.BOOKS_LIMIT);
+  let options = {};
   
+  if(genreId) {
+    options = {...options, genreId};
+  }
+  console.log(`>>> options: ${options.genreId}`);
   // console.log(`limit : ${limit},    page# : ${page}`);
 
   try {
-    const allBooks = await db.book.find()
+    const allBooks = await db.book.find(options)
 
-    const books = await db.book.find()
+    const books = await db.book.find(options)
     .skip((page -1) * limit)
     .limit(limit)
     .populate("coverRefId")
