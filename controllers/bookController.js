@@ -4,11 +4,11 @@ const db = require('../models/index');
 exports.addNewBook = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const userId = req.userData._id.toString();
-  const { title, description, author, genreId, cover, price, amount, sale} = req.body;
-  let coverRefId='';
-  
+  const { title, description, author, genreId, cover, price, amount, sale } = req.body;
+  let coverRefId = '';
+
   try {
-    coverRefId = await db.file.findOne({fileRef : cover});
+    coverRefId = await db.file.findOne({ fileRef: cover });
   } catch (error) {
     return res.status(400).json({
       message: `${error}`
@@ -51,13 +51,13 @@ exports.addNewBook = async function (req, res) {
   }
 };
 
-exports.uploadAvatar = async function (req,res) {
-  if(!req.file) {
+exports.uploadAvatar = async function (req, res) {
+  if (!req.file) {
     return res.status(400).json({ message: "Uploading error" });
   }
   const fileRef = req.file.filename;
   try {
-    await db.file.create({fileRef});
+    await db.file.create({ fileRef });
   } catch (error) {
     return res.status(400).json({
       message: `${error}`
@@ -65,7 +65,7 @@ exports.uploadAvatar = async function (req,res) {
   }
 
   const body = {
-    fileName : fileRef,
+    fileName: fileRef,
   };
   return res.status(200).send(body);
 
@@ -73,12 +73,12 @@ exports.uploadAvatar = async function (req,res) {
 };
 
 exports.getMyBooks = async function (req, res) {
-  
+
   const userId = req.userData._id.toString();
 
   try {
-    const books = await db.book.find({userId})
-    .populate("coverRefId")
+    const books = await db.book.find({ userId })
+      .populate("coverRefId")
     if (books.length === 0) {
       throw new Error("No such books");
     }
@@ -93,35 +93,62 @@ exports.getMyBooks = async function (req, res) {
   }
 };
 
-exports.getBooks = async function (req,res) {
-  const { page, genreId } = req.query;
+exports.getBooks = async function (req, res) {
+  const { page, genreId, sortingString } = req.query;
+  let { priceMin, priceMax } = req.query;
   const limit = Number(process.env.BOOKS_LIMIT);
-  let options = {};
-  
-  if(genreId) {
-    options = {...options, genreId};
+  let filterOptions = {};
+  let sortingOptions;
+
+  if (genreId) {
+    filterOptions = { ...filterOptions, genreId };
   }
-  console.log(`>>> options: ${options.genreId}`);
-  // console.log(`limit : ${limit},    page# : ${page}`);
+
+  if (!priceMin) {
+    priceMin = 0;
+  }
+  if (!priceMax) {
+    priceMax = 999999999;
+  }
+
+  filterOptions = { ...filterOptions, price: { $gte: priceMin, $lte: priceMax } };
+
+  switch (sortingString) {
+    case 'default': { sortingOptions = {} }
+      break;
+    case 'olderFirst': { sortingOptions = { createdAt: -1 } }
+      break;
+    case 'youngerFirst': { sortingOptions = { createdAt: 1 } }
+      break;
+    case 'expensiveFirst': { sortingOptions = { price: -1 } }
+      break;
+    case 'cheapFirst': { sortingOptions = { price: 1 } }
+      break;
+
+    default: { sortingOptions = {} }
+      break;
+  }
 
   try {
-    const allBooks = await db.book.find(options)
+    const allBooks = await db.book.find(filterOptions)
+      .where('price').gt(priceMin).lt(priceMax)
 
-    const books = await db.book.find(options)
-    .skip((page -1) * limit)
-    .limit(limit)
-    .populate("coverRefId")
-    .populate("genreId")
+    const books = await db.book.find(filterOptions)
+      .sort(sortingOptions)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .populate("coverRefId")
+      .populate("genreId")
     if (books.length === 0) {
       throw new Error("No such books");
     }
 
     const totalDocs = allBooks.length;
-    const totalPages = Math.ceil(totalDocs/limit);
+    const totalPages = Math.ceil(totalDocs / limit);
     const hasNextPage = (Number(page) < totalPages);
     const hasPrevPage = (Number(page) > 1);
-    const nextPage = hasNextPage ? (+page +1) : null;
-    const prevPage = hasPrevPage ? (+page -1) : null;
+    const nextPage = hasNextPage ? (+page + 1) : null;
+    const prevPage = hasPrevPage ? (+page - 1) : null;
     const pagingCounter = (page - 1) * limit;
 
     const pagination = {
