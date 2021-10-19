@@ -103,7 +103,6 @@ exports.getBooks = async function (req, res) {
   if (genreId) {
     filterOptions = { ...filterOptions, genreId };
   }
-
   if (!priceMin) {
     priceMin = 0;
   }
@@ -176,6 +175,24 @@ exports.getBooks = async function (req, res) {
 
 };
 
+exports.getBookById = async function (req, res) {
+  const { bookId } = req.query;
+  console.log(`>>>${bookId}`);
+  try {
+    const book = await db.book.findOne({ _id: bookId })
+      .populate("coverRefId")
+      .populate("genreId")
+    const body = {
+      book,
+    }
+    res.status(200).send(body);
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+}
+
 exports.getGenres = async function (req, res) {
   try {
     const genres = await db.genre.find();
@@ -210,3 +227,36 @@ exports.getAuthors = async function (req, res) {
     });
   }
 };
+
+exports.addToFavorites = async function (req, res) {
+  if (!req.body.bookId) return res.status(400).json({ message: "No book ID" });
+  const userId = req.userData._id.toString();
+  const { bookId } = req.body;
+
+  try {
+    const favoriteBook = await db.favorites.find({ bookId, userId });
+    if (favoriteBook.length > 0) {
+      console.log(favoriteBook);
+      return res.status(400).json({ message: "This book already in favorites" });
+    }
+  } catch (error) {
+
+  }
+
+  try {
+    await db.favorites.create({
+      bookId,
+      userId,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+    res.status(200).json({
+      message: `Book added to favorites`
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+
+}

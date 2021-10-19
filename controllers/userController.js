@@ -60,7 +60,7 @@ exports.editUser = async function (req, res) {
 exports.getUserByID = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const _id = req.userData._id;
-  console.log(`>>>: ${_id}`);
+  //console.log(`>>>: ${_id}`);
   let user = {};
 
   try {
