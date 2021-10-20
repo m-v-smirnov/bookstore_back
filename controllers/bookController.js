@@ -1,3 +1,4 @@
+var mongoose = require('mongoose');
 const db = require('../models/index');
 
 
@@ -110,7 +111,7 @@ exports.getBooks = async function (req, res) {
     priceMax = 999999999;
   }
 
-  filterOptions = { ...filterOptions, price: { $gte: priceMin, $lte: priceMax } };
+  filterOptions = { ...filterOptions, price: {$gte: priceMin, $lte: priceMax} };
 
   switch (sortingString) {
     case 'default': { sortingOptions = {} }
@@ -177,7 +178,7 @@ exports.getBooks = async function (req, res) {
 
 exports.getBookById = async function (req, res) {
   const { bookId } = req.query;
-  console.log(`>>>${bookId}`);
+ // console.log(`>>>${bookId}`);
   try {
     const book = await db.book.findOne({ _id: bookId })
       .populate("coverRefId")
@@ -240,7 +241,7 @@ exports.addToFavorites = async function (req, res) {
       return res.status(400).json({ message: "This book already in favorites" });
     }
   } catch (error) {
-
+    console.log(error);
   }
 
   try {
@@ -259,4 +260,121 @@ exports.addToFavorites = async function (req, res) {
     });
   }
 
+}
+
+exports.addBookRating = async function (req, res) {
+  if (!req.body.bookId) return res.status(400).json({ message: "No book ID" });
+  const userId = req.userData._id.toString();
+  const { rating , bookId } = req.body;
+  console.log(`>>>   ${rating}    ${bookId}`);
+  try {
+    const bookWithRating = await db.ratings.find({ bookId, userId });
+    if (bookWithRating.length > 0) {
+      console.log(bookWithRating);
+      return res.status(400).json({ message: "You already send rating" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+
+  try {
+    await db.ratings.create({
+      rating,
+      bookId,
+      userId,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });
+    res.status(200).json({
+      message: `Book rated`
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+}
+
+exports.getBookRating = async function (req,res) {
+  if (!req.query.bookId) {
+    return res.status(400).json({ message: "No book ID" });
+  }
+  const { bookId } = req.query;
+
+  try {
+    const rates = await db.ratings.find({bookId})
+    let sum=0;
+    rates.map((item) => { sum += item.rating });
+
+    const body = {
+      rating: sum/rates.length
+    };
+    res.status(200).send(body);
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+
+}
+
+exports.addBookReview = async function (req,res) {
+  if (!req.body.review) {
+    return res.status(400).json({ message: "Review should not be empty" });
+  }
+  const userId = req.userData._id.toString();
+  const { bookId, review } = req.body;
+
+  try {
+    const reviewsResponse = await db.review.findOne({bookId,userId});
+    if (reviewsResponse) {
+      return res.status(400).json({ message: "You have already written a review" });
+    }  
+  } catch (error) {
+    console.log(error);
+  }
+
+
+  try {
+    await db.review.create({
+      _id: (new mongoose.mongo.ObjectId()).toString(),
+      review,
+      bookId,
+      userId,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    });  
+    res.status(200).json({
+      message: `Review created`
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
+}
+
+exports.getBookReviews = async function (req,res) {
+  if (!req.query.bookId) {
+    return res.status(400).json({ message: "No book ID" });
+  }
+  const { bookId } = req.query;
+
+  try {
+    const reviewsResponse = await db.review.find({bookId})
+    .populate('userId')
+
+    if(reviewsResponse.length === 0) {
+      return res.status(400).json({ message: "Reviews list is empty" });
+    }
+
+    const body = {
+      reviews : reviewsResponse
+    }
+    res.status(200).send(body);
+  } catch (error) {
+    res.status(400).json({
+      message: `${error}`
+    });
+  }
 }
