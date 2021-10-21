@@ -362,7 +362,11 @@ exports.getBookReviews = async function (req,res) {
 
   try {
     const reviewsResponse = await db.review.find({bookId})
-    .populate('userId')
+    .populate({
+      path: 'userId',
+      select: 'fullName avatarRefId',
+      populate: {path : 'avatarRefId'}
+    })
 
     if(reviewsResponse.length === 0) {
       return res.status(400).json({ message: "Reviews list is empty" });
