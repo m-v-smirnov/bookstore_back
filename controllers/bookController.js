@@ -1,7 +1,6 @@
 var mongoose = require('mongoose');
 const db = require('../models/index');
 
-
 exports.addNewBook = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const userId = req.userData._id.toString();
