@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const { body, validationResult } = require('express-validator');
 const secretKey = process.env.SECRET_KEY;
 
-
 exports.checkUserToken = async function (req, res, next) {
   let token = '';
   let decoded = {};
@@ -40,14 +39,6 @@ exports.checkUserToken = async function (req, res, next) {
     });
   }
 };
-
-// const emailPassIsValid = (req, res, next) => {
-//   // logic
-//   next()
-// }
-
-// // authRouter.post("/registration", emailPassIsValid, authController.createUser);
-
 
 exports.emailPassIsValid = [
   body('email').isEmail(),

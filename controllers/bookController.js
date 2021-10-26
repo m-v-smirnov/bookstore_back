@@ -129,8 +129,8 @@ exports.getBooks = async function (req, res) {
   }
 
   try {
-    const allBooks = await db.book.find(filterOptions)
-      .where('price').gt(priceMin).lt(priceMax)
+    const totalDocs = await db.book.count(filterOptions)
+      // .where('price').gt(priceMin).lt(priceMax)
 
     const books = await db.book.find(filterOptions)
       .sort(sortingOptions)
@@ -142,7 +142,7 @@ exports.getBooks = async function (req, res) {
       throw new Error("No such books");
     }
 
-    const totalDocs = allBooks.length;
+    // const totalDocs = allBooks.length;
     const totalPages = Math.ceil(totalDocs / limit);
     const hasNextPage = (Number(page) < totalPages);
     const hasPrevPage = (Number(page) > 1);
@@ -302,11 +302,14 @@ exports.getBookRating = async function (req,res) {
 
   try {
     const rates = await db.ratings.find({bookId})
+    // ----- reduce
     let sum=0;
     rates.map((item) => { sum += item.rating });
+    const rating = sum/rates.length
 
+    // ----
     const body = {
-      rating: sum/rates.length
+      rating
     };
     res.status(200).send(body);
   } catch (error) {
