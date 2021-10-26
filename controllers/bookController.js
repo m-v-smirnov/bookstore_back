@@ -107,7 +107,7 @@ exports.getBooks = async function (req, res) {
     priceMin = 0;
   }
   if (!priceMax) {
-    priceMax = 999999999;
+    priceMax =  Infinity;
   }
 
   filterOptions = { ...filterOptions, price: {$gte: priceMin, $lte: priceMax} };
@@ -176,8 +176,8 @@ exports.getBooks = async function (req, res) {
 };
 
 exports.getBookById = async function (req, res) {
-  const { bookId } = req.query;
- // console.log(`>>>${bookId}`);
+  const { bookId } = req.params;
+  
   try {
     const book = await db.book.findOne({ _id: bookId })
       .populate("coverRefId")
@@ -295,17 +295,18 @@ exports.addBookRating = async function (req, res) {
 }
 
 exports.getBookRating = async function (req,res) {
-  if (!req.query.bookId) {
+  if (!req.params) {
     return res.status(400).json({ message: "No book ID" });
   }
-  const { bookId } = req.query;
-
+  const { bookId } = req.params;
+  console.log(`>>>${bookId}`);
   try {
     const rates = await db.ratings.find({bookId})
     // ----- reduce
-    let sum=0;
-    rates.map((item) => { sum += item.rating });
-    const rating = sum/rates.length
+    // let sum=0;
+    // rates.map((item) => { sum += item.rating });
+    // const rating = sum/rates.length
+    const rating = (rates.length > 0) ? (rates.reduce((sum,current) => sum += current.rating,0)/rates.length) : 0;
 
     // ----
     const body = {

@@ -4,9 +4,10 @@ const middlewares = require('../middlewares/index');
 
 const shopcartRouter = express.Router();
 
-shopcartRouter.patch("/",middlewares.checkUserToken,shopcartController.addBookToCart);
-shopcartRouter.get("/",middlewares.checkUserToken,shopcartController.getBooksFromCart);
-shopcartRouter.delete("/",middlewares.checkUserToken,shopcartController.deleteOneBookFromCart);
-shopcartRouter.delete("/books",middlewares.checkUserToken,shopcartController.deleteBooksFromCart);
-shopcartRouter.delete("/empty-cart",middlewares.checkUserToken,shopcartController.emptyCart);
+shopcartRouter.use("/",middlewares.checkUserToken);
+shopcartRouter.patch("/",shopcartController.addBookToCart);
+shopcartRouter.get("/",shopcartController.getBooksFromCart);
+shopcartRouter.delete("/",shopcartController.deleteOneBookFromCart);
+shopcartRouter.delete("/books",shopcartController.deleteBooksFromCart);
+shopcartRouter.delete("/empty-cart",shopcartController.emptyCart);
 module.exports = shopcartRouter;

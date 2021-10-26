@@ -5,9 +5,9 @@ const middlewares = require('../middlewares/index');
 
 const userRouter = express.Router();
 
-userRouter.patch("/", middlewares.checkUserToken, passIsValid, userController.editUser);
-//userRouter.patch("/",middlewares.checkUserToken, userController.editUser);
-userRouter.delete("/", middlewares.checkUserToken, userController.deleteUser);
-userRouter.get("/",middlewares.checkUserToken, userController.getUserByID);
+userRouter.use("/", middlewares.checkUserToken);
+userRouter.patch("/", passIsValid, userController.editUser);
+userRouter.delete("/", userController.deleteUser);
+userRouter.get("/", userController.getUserByID);
 
 module.exports = userRouter;

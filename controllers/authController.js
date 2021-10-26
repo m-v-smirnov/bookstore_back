@@ -21,7 +21,6 @@ function tokenSign(id, email) {
         if (err) {
           rej('Error')
         }
-        //console.log('new token:', token);
         res(token);
       }
     );
