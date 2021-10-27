@@ -76,10 +76,10 @@ exports.getUserByID = async function (req, res) {
 
 exports.deleteUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-  const id = req.userId;
+  const _id = req.userData._id;
 
   try {
-    const user = await db.user.deleteOne({ _id: id });
+    const user = await db.user.deleteOne({ _id });
     res.status(200).json({
       message: `User deleted`
     });

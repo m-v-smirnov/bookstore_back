@@ -107,10 +107,10 @@ exports.getBooks = async function (req, res) {
     priceMin = 0;
   }
   if (!priceMax) {
-    priceMax =  Infinity;
+    priceMax = Infinity;
   }
 
-  filterOptions = { ...filterOptions, price: {$gte: priceMin, $lte: priceMax} };
+  filterOptions = { ...filterOptions, price: { $gte: priceMin, $lte: priceMax } };
 
   switch (sortingString) {
     case 'default': { sortingOptions = {} }
@@ -128,27 +128,23 @@ exports.getBooks = async function (req, res) {
       break;
   }
 
+  const options = {
+    sort: sortingOptions,
+    limit,
+    lean: true,
+    page,
+    populate: ["coverRefId", "genreId"],
+  }
+
   try {
-    const totalDocs = await db.book.count(filterOptions)
-      // .where('price').gt(priceMin).lt(priceMax)
-
-    const books = await db.book.find(filterOptions)
-      .sort(sortingOptions)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .populate("coverRefId")
-      .populate("genreId")
-    if (books.length === 0) {
-      throw new Error("No such books");
-    }
-
-    // const totalDocs = allBooks.length;
-    const totalPages = Math.ceil(totalDocs / limit);
-    const hasNextPage = (Number(page) < totalPages);
-    const hasPrevPage = (Number(page) > 1);
-    const nextPage = hasNextPage ? (+page + 1) : null;
-    const prevPage = hasPrevPage ? (+page - 1) : null;
-    const pagingCounter = (page - 1) * limit;
+    const { totalDocs,
+      totalPages,
+      hasNextPage,
+      hasPrevPage,
+      nextPage,
+      prevPage,
+      pagingCounter, 
+      docs } = await db.book.paginate(filterOptions, options);
 
     const pagination = {
       totalDocs,
@@ -163,7 +159,7 @@ exports.getBooks = async function (req, res) {
     };
 
     const body = {
-      books,
+      books: docs,
       pagination
     }
     res.status(200).send(body);
@@ -177,7 +173,7 @@ exports.getBooks = async function (req, res) {
 
 exports.getBookById = async function (req, res) {
   const { bookId } = req.params;
-  
+
   try {
     const book = await db.book.findOne({ _id: bookId })
       .populate("coverRefId")
@@ -229,9 +225,9 @@ exports.getAuthors = async function (req, res) {
 };
 
 exports.addToFavorites = async function (req, res) {
-  if (!req.body.bookId) return res.status(400).json({ message: "No book ID" });
+  if (!req.params.bookId) return res.status(400).json({ message: "No book ID" });
   const userId = req.userData._id.toString();
-  const { bookId } = req.body;
+  const { bookId } = req.params;
 
   try {
     const favoriteBook = await db.favorites.find({ bookId, userId });
@@ -262,10 +258,10 @@ exports.addToFavorites = async function (req, res) {
 }
 
 exports.addBookRating = async function (req, res) {
-  if (!req.body.bookId) return res.status(400).json({ message: "No book ID" });
+  if (!req.params.bookId) return res.status(400).json({ message: "No book ID" });
   const userId = req.userData._id.toString();
-  const { rating , bookId } = req.body;
-  console.log(`>>>   ${rating}    ${bookId}`);
+  const { rating } = req.body;
+  const { bookId } = req.params;
   try {
     const bookWithRating = await db.ratings.find({ bookId, userId });
     if (bookWithRating.length > 0) {
@@ -294,19 +290,20 @@ exports.addBookRating = async function (req, res) {
   }
 }
 
-exports.getBookRating = async function (req,res) {
+exports.getBookRating = async function (req, res) {
   if (!req.params) {
     return res.status(400).json({ message: "No book ID" });
   }
   const { bookId } = req.params;
   console.log(`>>>${bookId}`);
   try {
-    const rates = await db.ratings.find({bookId})
+    const rates = await db.ratings.find({ bookId })
     // ----- reduce
     // let sum=0;
     // rates.map((item) => { sum += item.rating });
     // const rating = sum/rates.length
-    const rating = (rates.length > 0) ? (rates.reduce((sum,current) => sum += current.rating,0)/rates.length) : 0;
+    const rating = (rates.length > 0) 
+    ? (rates.reduce((sum, current) => sum += current.rating, 0) / rates.length) : 0;
 
     // ----
     const body = {
@@ -321,18 +318,19 @@ exports.getBookRating = async function (req,res) {
 
 }
 
-exports.addBookReview = async function (req,res) {
+exports.addBookReview = async function (req, res) {
   if (!req.body.review) {
     return res.status(400).json({ message: "Review should not be empty" });
   }
   const userId = req.userData._id.toString();
-  const { bookId, review } = req.body;
+  const { review } = req.body;
+  const { bookId } = req.params;
 
   try {
-    const reviewsResponse = await db.review.findOne({bookId,userId});
+    const reviewsResponse = await db.review.findOne({ bookId, userId });
     if (reviewsResponse) {
       return res.status(400).json({ message: "You have already written a review" });
-    }  
+    }
   } catch (error) {
     console.log(error);
   }
@@ -346,7 +344,7 @@ exports.addBookReview = async function (req,res) {
       userId,
       createdAt: Date.now(),
       updatedAt: Date.now()
-    });  
+    });
     res.status(200).json({
       message: `Review created`
     });
@@ -357,26 +355,26 @@ exports.addBookReview = async function (req,res) {
   }
 }
 
-exports.getBookReviews = async function (req,res) {
-  if (!req.query.bookId) {
+exports.getBookReviews = async function (req, res) {
+  if (!req.params.bookId) {
     return res.status(400).json({ message: "No book ID" });
   }
-  const { bookId } = req.query;
+  const { bookId } = req.params;
 
   try {
-    const reviewsResponse = await db.review.find({bookId})
-    .populate({
-      path: 'userId',
-      select: 'fullName avatarRefId',
-      populate: {path : 'avatarRefId'}
-    })
+    const reviewsResponse = await db.review.find({ bookId })
+      .populate({
+        path: 'userId',
+        select: 'fullName avatarRefId',
+        populate: { path: 'avatarRefId' }
+      })
 
-    if(reviewsResponse.length === 0) {
+    if (reviewsResponse.length === 0) {
       return res.status(400).json({ message: "Reviews list is empty" });
     }
 
     const body = {
-      reviews : reviewsResponse
+      reviews: reviewsResponse
     }
     res.status(200).send(body);
   } catch (error) {
