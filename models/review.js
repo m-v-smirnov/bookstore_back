@@ -3,10 +3,12 @@ const Schema = mongoose.Schema;
 
 const reviewScheme = new Schema(
   {
-    _id: String,
+   // _id: String,
     review: String,
-    bookId: { type: Schema.Types.ObjectId, ref: 'Book' },
-    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    bookId: String,
+    userId: String,
+    // bookId: { type: Schema.Types.ObjectId, ref: 'Book' },
+    // userId: { type: Schema.Types.ObjectId, ref: 'User' },
     createdAt: Date,
     updatedAt: Date
   },

@@ -338,7 +338,7 @@ exports.addBookReview = async function (req, res) {
 
   try {
     await db.review.create({
-      _id: (new mongoose.mongo.ObjectId()).toString(),
+      //_id: (new mongoose.mongo.ObjectId()).toString(),
       review,
       bookId,
       userId,
@@ -362,12 +362,15 @@ exports.getBookReviews = async function (req, res) {
   const { bookId } = req.params;
 
   try {
-    const reviewsResponse = await db.review.find({ bookId })
-      .populate({
-        path: 'userId',
-        select: 'fullName avatarRefId',
-        populate: { path: 'avatarRefId' }
-      })
+    // const reviewsResponse = await db.review.find({ bookId })
+    //   .populate({
+    //     path: 'userId',
+    //     select: 'fullName avatarRefId',
+    //     populate: { path: 'avatarRefId' }
+    //   })
+    const reviewsResponse = await db.review.aggregate()
+    .match({bookId})
+    .project({userId: {$toObjectId: $userId}})
 
     if (reviewsResponse.length === 0) {
       return res.status(400).json({ message: "Reviews list is empty" });
