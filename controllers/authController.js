@@ -1,42 +1,16 @@
 const db = require('../models/index');
-const { createHash } = require("crypto");
-const jwt = require("jsonwebtoken");
-const secretKey = process.env.SECRET_KEY;
-
-
-// const { promisify } = require('util')
-// const tokenSignAsync = promisify(jwt.sign);
-// tokenSignAsync({id, email}, secretKey, {})
-
-
-function tokenSign(id, email) {
-  return new Promise((res, rej) => {
-    jwt.sign({
-      id,
-      email
-    },
-      secretKey,
-      { expiresIn: 6000 },
-      function (err, token) {
-        if (err) {
-          rej('Error')
-        }
-        res(token);
-      }
-    );
-  })
-  // return jwt.sign({ id, email }, secretKey, { expiresIn: 1000 });
-}
+const { tokenSign } = require('../utils/tokenSign');
+const { stringToHash } = require('../utils/stringToHash');
 
 exports.createUser = async function (req, res) {
 
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const { fullName, email, dob, password } = req.body;
-  const hashPassword = createHash('sha256').update(password).digest('hex');
+  const hashPassword = stringToHash(password);
   let sendUser = {};
-
   const fileRef = "defaultavatar.png";
   let avatarRefId;
+
   try {
     avatarRefId = (await db.file.findOne({ fileRef }))._id;
   } catch (error) {
@@ -53,6 +27,7 @@ exports.createUser = async function (req, res) {
       message: `${error}`
     });
   }
+
   try {
     const user = await db.user.create({
       fullName,
@@ -84,7 +59,7 @@ exports.createUser = async function (req, res) {
 exports.loginUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const { email, password } = req.body;
-  const hashPassword = createHash('sha256').update(password).digest('hex');
+  const hashPassword = stringToHash(password);
   let sendUser = {};
 
   try {
@@ -114,7 +89,6 @@ exports.loginUser = async function (req, res) {
 };
 
 exports.loginUserByToken = async function (req, res) {
-
   const id = req.userId;
   let sendUser = {};
   try {

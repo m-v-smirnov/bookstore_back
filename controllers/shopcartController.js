@@ -4,7 +4,7 @@ exports.addBookToCart = async function (req, res) {
   const userId = req.userData._id.toString();
   const { bookId } = req.body;
   let book;
-  console.log(`>>> bookId:${bookId}`);
+
   try {
     book = await db.cart.findOne({ userId, bookId });
   } catch (error) {
@@ -28,7 +28,6 @@ exports.addBookToCart = async function (req, res) {
   else {
 
     try {
-      console.log(`>>> bookId:${bookId}`);
       await db.cart.create({ userId, bookId, amount: 1 });
       res.status(200).json({
         message: `New book added to cart`,
@@ -145,7 +144,7 @@ exports.getBooksFromCart = async function (req,res) {
   try {
     const book = await db.cart.findOne({ userId })
     if (!book) {
-      const body = {books};
+      const body = {bookCart: books};
       return res.status(200).send(body);
     }
   }

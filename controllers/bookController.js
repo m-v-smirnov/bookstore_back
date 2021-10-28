@@ -232,7 +232,6 @@ exports.addToFavorites = async function (req, res) {
   try {
     const favoriteBook = await db.favorites.find({ bookId, userId });
     if (favoriteBook.length > 0) {
-      console.log(favoriteBook);
       return res.status(400).json({ message: "This book already in favorites" });
     }
   } catch (error) {
@@ -265,7 +264,6 @@ exports.addBookRating = async function (req, res) {
   try {
     const bookWithRating = await db.ratings.find({ bookId, userId });
     if (bookWithRating.length > 0) {
-      console.log(bookWithRating);
       return res.status(400).json({ message: "You already send rating" });
     }
   } catch (error) {
@@ -295,7 +293,6 @@ exports.getBookRating = async function (req, res) {
     return res.status(400).json({ message: "No book ID" });
   }
   const { bookId } = req.params;
-  console.log(`>>>${bookId}`);
   try {
     const rates = await db.ratings.find({ bookId })
     // ----- reduce
@@ -368,9 +365,51 @@ exports.getBookReviews = async function (req, res) {
     //     select: 'fullName avatarRefId',
     //     populate: { path: 'avatarRefId' }
     //   })
+   
+    // const reviewsResponse = await db.review.aggregate([
+    //   {$match: {bookId}},
+    //   {$project : {
+    //     //userId: { $toObjectId: "$userId" }
+    //     userId : {
+    //       $convert : {
+    //         input: "$userId",
+    //         to: "objectId"
+    //       }
+    //     }
+    //   }}
+    // ]);  
+        
+    // .match({bookId})
+    // .project({userId: {$toObjectId: "5ab9cbfa31c2ab715d42129e"}})
+    // //.project({userId: {$toObjectId: "$userId"}})
+
     const reviewsResponse = await db.review.aggregate()
     .match({bookId})
-    .project({userId: {$toObjectId: $userId}})
+    .project({
+      userId : {$toObjectId: "$userId"},
+      review : 1,
+      bookId : 1,
+      createdAt: 1
+    })
+    .lookup({
+      from: "users",
+      localField: "userId",
+      foreignField: "_id",
+      as: "userId" 
+    })
+    .unwind({path: "$userId"})
+    .project({
+      "user.password" : 0
+    })
+    .lookup({
+      from: "files",
+      localField: "userId.avatarRefId",
+      foreignField: "_id",
+      as: "userId.avatarRefId"
+    })
+    .unwind({path: "$userId.avatarRefId"})
+
+
 
     if (reviewsResponse.length === 0) {
       return res.status(400).json({ message: "Reviews list is empty" });

@@ -2,19 +2,20 @@
 require('dotenv').config();
 const express = require("express");
 const cors = require('cors');
-// const bodyParser = require('body-parser')
 
+const {requestsDataLogger} = require("./middlewares/index");
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const bookRouter = require("./routes/bookRouter");
 const shopcartRouter = require("./routes/shopcartRouter");
 
-
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+app.use("/",requestsDataLogger);
+
 app.use('/static',express.static(__dirname + '/public'));
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
