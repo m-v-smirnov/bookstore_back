@@ -10,10 +10,3 @@
 // packages: winston + winston-daily-rotate-file + (@aws-sdk/client-s3 ??) 
 
 // when new file appears - upload previous one to AWS S3 and THEN remove
-
-
-
-// SECRET_KEY=Sn2xV3eJ
-// PORT=3010
-// DATABASE_URL=mongodb+srv://fusion:fusion@cluster0.ds6sz.mongodb.net/bookstoreDb
-// BOOKS_LIMIT=6

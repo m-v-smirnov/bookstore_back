@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require("express");
 const cors = require('cors');
 
-const {requestsDataLogger} = require("./middlewares/index");
+const {requestsDataLogger} = require("./middlewares/requestDataLogger");
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const bookRouter = require("./routes/bookRouter");
