@@ -8,7 +8,7 @@ exports.checkUserToken = async function (req, res, next) {
   let decoded = {};
   try {
     token = req.headers.authorization.split(' ')[1];
-    console.log(token);
+    //console.log(token);
   } catch (err) {
     return res.status(400).json({
       message: "Authorization token missing or incorrect"
