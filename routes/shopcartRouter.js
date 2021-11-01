@@ -1,10 +1,10 @@
 const express = require("express");
 const shopcartController = require("../controllers/shopcartController");
-const middlewares = require('../middlewares/index');
+const {checkUserToken} = require('../middlewares/checkUserToken');
 
 const shopcartRouter = express.Router();
 
-shopcartRouter.use("/",middlewares.checkUserToken);
+shopcartRouter.use("/",checkUserToken);
 shopcartRouter.patch("/",shopcartController.addBookToCart);
 shopcartRouter.get("/",shopcartController.getBooksFromCart);
 shopcartRouter.delete("/",shopcartController.deleteOneBookFromCart);

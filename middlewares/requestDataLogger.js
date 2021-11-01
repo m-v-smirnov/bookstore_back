@@ -1,9 +1,9 @@
 var winston = require('winston');
+const {
+  uploadFile,
+  unlinkFile,
+  requestListObjects } = require('../utils/aws');
 require('winston-daily-rotate-file');
-const fs = require("fs");
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-const client = new S3Client({ region: "eu-central-1" });
-
 
 var transport = new winston.transports.DailyRotateFile({
   filename: './logs/bookstore_requests_log-%DATE%.log',
@@ -15,10 +15,17 @@ var transport = new winston.transports.DailyRotateFile({
 });
 
 transport.on('rotate', async function (oldFilename, newFilename) {
-  // do something fun
-  
-  console.log('@@@@@@@@@@@@@@@@@@@Hi from file rotate');
- // fs.unlinkSync(oldFilename);
+  try {
+    console.log('here we rotate');
+    await uploadFile(oldFilename);
+    await unlinkFile(oldFilename);
+
+    const objectList = await requestListObjects(11,1);
+    await requestListObjects(objectList);
+    
+  } catch (error) {
+    console.log(error);
+  }
 });
 
 var logger = winston.createLogger({
@@ -28,18 +35,30 @@ var logger = winston.createLogger({
 });
 
 exports.requestsDataLogger = async function (req, res, next) {
+  const oldEnd = res.end;
+  res.end = function (chunk) {
+    const log = {
+      method: req.method,
+      path: req.originUrl,
+      status: res.statusCode,
+      userId: req.userId || 'Unauthorized',
+      ts: Date.now(),
+    }
+    const excludeList = ['/images', '/genres', '/get-rating'];
 
-  const log = {
-    method: req.method,
-    path: req.url,
-    status: res.statusCode,
-    userId: req.headers.authorization || 'Unauthorized',
-    ts: Date.now(),
-  }
-  logger.info(JSON.stringify(log));
-
-  // logger.info(`URL : ${req.url}, auth : ${req.headers.authorization},`+
-  // ` IP: ${req.ip}, ts: ${Date.now()} `);
+    if (!excludeList.reduce((result, current) =>
+      result = result || log.path.includes(current), false)) {
+      logger.info(JSON.stringify(log));
+    }
+    oldEnd.apply(res, arguments);
+  };
   next();
 }
 
+// const result = []
+
+// readline.on('line', (line) => result.push(line))
+
+// await fsP.writeFile('filename-date-here.json', JSON.stringify(result));
+
+// await AWS.unploadFile('filename-date-here.json')

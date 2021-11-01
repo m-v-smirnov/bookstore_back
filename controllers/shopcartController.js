@@ -26,7 +26,6 @@ exports.addBookToCart = async function (req, res) {
     }
   }
   else {
-
     try {
       await db.cart.create({ userId, bookId, amount: 1 });
       res.status(200).json({
@@ -85,7 +84,6 @@ exports.deleteOneBookFromCart = async function (req, res) {
 exports.deleteBooksFromCart = async function (req, res) {
   const userId = req.userData._id.toString();
   const { bookId } = req.query;
-
   try {
     const book = await db.cart.findOne({ userId, bookId })
     if (!book) {
@@ -113,7 +111,6 @@ exports.deleteBooksFromCart = async function (req, res) {
 
 exports.emptyCart = async function (req, res) {
   const userId = req.userData._id.toString();
-
   try {
     const book = await db.cart.findOne({ userId })
     if (!book) {
@@ -134,7 +131,7 @@ exports.emptyCart = async function (req, res) {
       message: `Cart is empty`
     });
   } catch (error) {
-    
+    console.log(error);
   }
 }
 

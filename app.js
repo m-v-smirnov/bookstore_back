@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require("express");
 const cors = require('cors');
 
-const {requestsDataLogger} = require("./middlewares/requestDataLogger");
+const { requestsDataLogger } = require("./middlewares/requestDataLogger");
 const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const bookRouter = require("./routes/bookRouter");
@@ -14,9 +14,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use("/",requestsDataLogger);
+app.use((req,res,next) => {
+  req.originUrl = req.url;
+  next();
+});
+app.use(requestsDataLogger);
 
-app.use('/static',express.static(__dirname + '/public'));
+app.use('/static', express.static(__dirname + '/public'));
 app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/books", bookRouter);

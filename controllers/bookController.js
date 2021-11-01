@@ -1,4 +1,3 @@
-var mongoose = require('mongoose');
 const db = require('../models/index');
 
 exports.addNewBook = async function (req, res) {
@@ -68,14 +67,10 @@ exports.uploadAvatar = async function (req, res) {
     fileName: fileRef,
   };
   return res.status(200).send(body);
-
-
 };
 
 exports.getMyBooks = async function (req, res) {
-
   const userId = req.userData._id.toString();
-
   try {
     const books = await db.book.find({ userId })
       .populate("coverRefId")
@@ -168,12 +163,10 @@ exports.getBooks = async function (req, res) {
       message: `${error}`
     });
   }
-
 };
 
 exports.getBookById = async function (req, res) {
   const { bookId } = req.params;
-
   try {
     const book = await db.book.findOne({ _id: bookId })
       .populate("coverRefId")
@@ -205,7 +198,6 @@ exports.getGenres = async function (req, res) {
     });
   }
 };
-
 
 exports.getAuthors = async function (req, res) {
   try {
@@ -253,7 +245,6 @@ exports.addToFavorites = async function (req, res) {
       message: `${error}`
     });
   }
-
 }
 
 exports.addBookRating = async function (req, res) {
@@ -295,14 +286,8 @@ exports.getBookRating = async function (req, res) {
   const { bookId } = req.params;
   try {
     const rates = await db.ratings.find({ bookId })
-    // ----- reduce
-    // let sum=0;
-    // rates.map((item) => { sum += item.rating });
-    // const rating = sum/rates.length
     const rating = (rates.length > 0) 
     ? (rates.reduce((sum, current) => sum += current.rating, 0) / rates.length) : 0;
-
-    // ----
     const body = {
       rating
     };
@@ -312,7 +297,6 @@ exports.getBookRating = async function (req, res) {
       message: `${error}`
     });
   }
-
 }
 
 exports.addBookReview = async function (req, res) {
@@ -331,7 +315,6 @@ exports.addBookReview = async function (req, res) {
   } catch (error) {
     console.log(error);
   }
-
 
   try {
     await db.review.create({
@@ -359,30 +342,6 @@ exports.getBookReviews = async function (req, res) {
   const { bookId } = req.params;
 
   try {
-    // const reviewsResponse = await db.review.find({ bookId })
-    //   .populate({
-    //     path: 'userId',
-    //     select: 'fullName avatarRefId',
-    //     populate: { path: 'avatarRefId' }
-    //   })
-   
-    // const reviewsResponse = await db.review.aggregate([
-    //   {$match: {bookId}},
-    //   {$project : {
-    //     //userId: { $toObjectId: "$userId" }
-    //     userId : {
-    //       $convert : {
-    //         input: "$userId",
-    //         to: "objectId"
-    //       }
-    //     }
-    //   }}
-    // ]);  
-        
-    // .match({bookId})
-    // .project({userId: {$toObjectId: "5ab9cbfa31c2ab715d42129e"}})
-    // //.project({userId: {$toObjectId: "$userId"}})
-
     const reviewsResponse = await db.review.aggregate()
     .match({bookId})
     .project({
@@ -409,12 +368,9 @@ exports.getBookReviews = async function (req, res) {
     })
     .unwind({path: "$userId.avatarRefId"})
 
-
-
     if (reviewsResponse.length === 0) {
       return res.status(400).json({ message: "Reviews list is empty" });
     }
-
     const body = {
       reviews: reviewsResponse
     }

@@ -4,10 +4,7 @@ const { createHash } = require("crypto");
 
 exports.editUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
-
- 
   const { fullName, dob, password, avatarRef } = req.body;
-
   const _id = req.userData._id;
   let hashPassword = createHash('sha256').update(password).digest('hex');
   let avatarRefId = '';
@@ -54,14 +51,12 @@ exports.editUser = async function (req, res) {
       message: `Server send error: ${error.message}`
     });
   }
-
 };
 
 exports.getUserByID = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const _id = req.userData._id;
   let user = {};
-
   try {
     user = await db.user.findOne({ _id }).populate('avatarRefId');
     body = {user};
@@ -76,7 +71,6 @@ exports.getUserByID = async function (req, res) {
 exports.deleteUser = async function (req, res) {
   if (!req.body) return res.status(400).json({ message: "Empty request body" });
   const _id = req.userData._id;
-
   try {
     const user = await db.user.deleteOne({ _id });
     res.status(200).json({
