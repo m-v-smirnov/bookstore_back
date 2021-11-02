@@ -1,4 +1,5 @@
 const fs = require("fs");
+const readline = require('readline');
 const util = require('util')
 const { S3Client, PutObjectCommand, SelectObjectContentCommand, ListObjectsCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
 
@@ -13,12 +14,31 @@ const client = new S3Client({
   }
 })
 
+const readFileLineByLine = async (fileName) => {
+  const result = [];
+  const fileStream = fs.createReadStream(fileName);
+
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {
+    result.push(JSON.stringify(JSON.parse(line).message));
+  }
+  return result;
+}
+
 exports.uploadFile = async (fileName) => {
-  const fileContent = await fsPromises.readFile(fileName);
+  // const fileContent = await fsPromises.readFile(fileName);
+  // await fsPromises.writeFile(`${fileName}_`,JSON.stringify(fileOutput));
+
+  const fileOutput = await readFileLineByLine(fileName);
+
   const params = {
     Bucket: process.env.BUCKET_NAME,
     Key: fileName,
-    Body: fileContent,
+    Body: JSON.stringify(fileOutput),
   }
   const command = new PutObjectCommand(params)
   const data = await client.send(command)
@@ -45,12 +65,62 @@ const getObject = async (objectKey) => {
   }
   const command = new GetObjectCommand(params);
   const data = await client.send(command);
-  await fsPromises.writeFile(objectKey,data.Body);
+  await fsPromises.writeFile(objectKey, data.Body);
 }
 
-exports.getObjectsFromList = async (objectList) => {
-  objectList.map((item) => {
-    getObject(item.Key)
+const selectObjectContentFromS3 = async (objectKey, sqlExpression) => {
+  try {
+    const params = {
+      Bucket: process.env.BUCKET_NAME,
+      Key: objectKey,
+      Expression: sqlExpression,
+      ExpressionType: "SQL",
+      InputSerialization: {
+        JSON: {
+          Type: "LINES"
+        }
+      },
+      OutputSerialization: {
+        JSON: {
+          RecordDelimiter: ','
+        }
+      },
+    }
+    const command = new SelectObjectContentCommand(params);
+    const data = await client.send(command);
+    
+    const records = [];
+
+    const events = data.Payload;
+    for await (const event of events) {
+      if (event.Records) {
+        records.push(event.Records.Payload);
+      } else if (event.Stats) {
+        // handle Stats event
+      } else if (event.Progress) {
+        // handle Progress event
+      } else if (event.Cont) {
+        // handle Cont event
+      } else if (event.End) {
+        // handle End event
+        // let planetString = Buffer.concat(records).toString('utf8').slice(0,-1);
+        let planetString = Buffer.concat(records).toString('utf8');
+        await fsPromises.writeFile(objectKey,planetString);
+      }
+    }
+  } catch (error) {
+    console.log(`Item ${objectKey} error:`, error);
+  }
+}
+
+exports.getObjectsFromList = async (objectList, sqlExpression) => {
+  // objectList.map((item) => {
+  //   getObject(item.Key)
+  // });
+
+  const myPromiseList = objectList.map(async (item) => {
+    return selectObjectContentFromS3(item.Key, sqlExpression)
   });
-}
 
+  const res = await Promise.allSettled(myPromiseList);
+}

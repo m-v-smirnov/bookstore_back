@@ -1,9 +1,12 @@
+
+
 var winston = require('winston');
 const {
   uploadFile,
   unlinkFile,
   requestListObjects,
-  getObjectsFromList } = require('../utils/aws');
+  getObjectsFromList,
+  readFileLineByLine } = require('../utils/aws');
 require('winston-daily-rotate-file');
 
 var transport = new winston.transports.DailyRotateFile({
@@ -20,11 +23,11 @@ transport.on('rotate', async function (oldFilename, newFilename) {
     console.log('here we rotate');
     await uploadFile(oldFilename);
     await unlinkFile(oldFilename);
-  
-    const objectList = await requestListObjects(11,2);
-    // console.log(objectList);
-    await getObjectsFromList(objectList);
     
+    // const sqlExpression = 'SELECT d.* FROM S3Object AS d WHERE d.status=304';
+    // const objectList = await requestListObjects(11,2);
+    // await getObjectsFromList(objectList,sqlExpression);
+
   } catch (error) {
     console.log(error);
   }
@@ -50,12 +53,15 @@ exports.requestsDataLogger = async function (req, res, next) {
 
     if (!excludeList.reduce((result, current) =>
       result = result || log.path.includes(current), false)) {
-      logger.info(JSON.stringify(log));
+      logger.info(log);
     }
     oldEnd.apply(res, arguments);
   };
   next();
 }
+
+
+
 
 // const result = []
 
@@ -63,4 +69,4 @@ exports.requestsDataLogger = async function (req, res, next) {
 
 // await fsP.writeFile('filename-date-here.json', JSON.stringify(result));
 
-// await AWS.unploadFile('filename-date-here.json')
+// await AWS.uploadFile('filename-date-here.json')
