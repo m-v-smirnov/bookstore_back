@@ -34,7 +34,7 @@ exports.requestListObjects = async (month, day) => {
     item.LastModified.getMonth() === month - 1
     && item.LastModified.getDate() === day
   );
-  console.log(objectList);
+  //console.log(objectList);
   return objectList;
 }
 
@@ -45,7 +45,7 @@ const getObject = async (objectKey) => {
   }
   const command = new GetObjectCommand(params);
   const data = await client.send(command);
-  await fsPromises.writeFile(objectKey,data);
+  await fsPromises.writeFile(objectKey,data.Body);
 }
 
 exports.getObjectsFromList = async (objectList) => {

@@ -2,7 +2,8 @@ var winston = require('winston');
 const {
   uploadFile,
   unlinkFile,
-  requestListObjects } = require('../utils/aws');
+  requestListObjects,
+  getObjectsFromList } = require('../utils/aws');
 require('winston-daily-rotate-file');
 
 var transport = new winston.transports.DailyRotateFile({
@@ -19,9 +20,10 @@ transport.on('rotate', async function (oldFilename, newFilename) {
     console.log('here we rotate');
     await uploadFile(oldFilename);
     await unlinkFile(oldFilename);
-
-    const objectList = await requestListObjects(11,1);
-    await requestListObjects(objectList);
+  
+    const objectList = await requestListObjects(11,2);
+    // console.log(objectList);
+    await getObjectsFromList(objectList);
     
   } catch (error) {
     console.log(error);
