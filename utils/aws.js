@@ -81,7 +81,7 @@ const selectObjectContentFromS3 = async (objectKey, sqlExpression) => {
       },
       OutputSerialization: {
         JSON: {
-          RecordDelimiter: ','
+          RecordDelimiter: ',\n'
         }
       },
     }
@@ -116,7 +116,7 @@ exports.getObjectsFromList = async (objectList, sqlExpression) => {
   // objectList.map((item) => {
   //   getObject(item.Key)
   // });
-  console.log('@@@@@',objectList);
+  // console.log('@@@@@',objectList);
   const myPromiseList = objectList.map(async (item) => {
     return selectObjectContentFromS3(item.Key, sqlExpression)
   });

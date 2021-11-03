@@ -7,20 +7,20 @@ exports.getLogsFromS3 = async function (req, res) {
     let whereString = 'WHERE ';
     let whereParams = [];
     if (userId) {
-        whereParams.push(`userId='${userId}'`);
+        whereParams.push(`s.userId='${userId}'`);
     }
     if (method) {
-        whereParams.push(`method='${method}'`);
+        whereParams.push(`s.method='${method}'`);
     }
     if (path) {
-        whereParams.push(`path='${path}'`);
+        whereParams.push(`s.path='${path}'`);
     }
     sqlExpression = sqlExpression + ((whereParams.length > 0) ? whereString + whereParams.join(' AND ') : "");
 
     startDateParsed = new Date(startDate);
     endDateParsed = new Date(endDate);
-    
-    
+
+
     const prefixArray = [];
     const startPrefix = 'logs/bookstore_requests_log-';
     for (let i = startDateParsed.getFullYear(); i <= endDateParsed.getFullYear(); i++) {
@@ -31,31 +31,26 @@ exports.getLogsFromS3 = async function (req, res) {
         }
     }
 
-    await (async function () {
-        const allObjectsListAux =[]
-        try {
-           await ( async function () {prefixArray.map(async (item) => {
-                let objList;
-                objList = await requestListObjects(item);
+    let allObjectsList;
+    try {
+        allObjectsList = await (async function () {
+            const allObjectsListAux = [];
+            for await (let items of prefixArray) {
+                objList = await requestListObjects(items);
                 allObjectsListAux.push(...objList);
-            });
+            }
+            return allObjectsListAux
         })();
-            console.log(allObjectsListAux);
-        } catch (error) {
-            console.log(error);
-        }
+    } catch (error) {
+        console.log(error);
+    }
+    // console.log(allObjectsList);
 
-    })();
-
-    // const objectList = await requestListObjects("logs/book");
-    // const sqlExpression = 'SELECT s3.* FROM S3Object AS s3';
-    // await getObjectsFromList(objectList,sqlExpression);
-
-    // try {
-    //     await getObjectsFromList(allObjectsList, sqlExpression);
-    // } catch (error) {
-    //     console.log(error);
-    // }
+    try {
+        await getObjectsFromList(allObjectsList, sqlExpression);
+    } catch (error) {
+        console.log(error);
+    }
 
     const body = {
         sqlExpression,
