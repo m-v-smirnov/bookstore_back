@@ -1,7 +1,7 @@
 const fs = require("fs");
 const readline = require('readline');
 const util = require('util')
-const { S3Client, PutObjectCommand, SelectObjectContentCommand, ListObjectsCommand, GetObjectCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, SelectObjectContentCommand, ListObjectsCommand, GetObjectCommand , ListObjectsV2Command} = require("@aws-sdk/client-s3");
 
 const fsPromises = fs.promises;
 exports.unlinkFile = util.promisify(fs.unlink);
@@ -42,18 +42,19 @@ exports.uploadFile = async (fileName) => {
   const data = await client.send(command)
 }
 
-exports.requestListObjects = async (month, day) => {
+exports.requestListObjects = async (prefixString) => {
   const params = {
     Bucket: process.env.BUCKET_NAME,
+    Prefix: prefixString,
   }
   const command = new ListObjectsCommand(params)
   const data = await client.send(command);
-  const objectList = data.Contents.filter(item =>
-    item.LastModified.getMonth() === month - 1
-    && item.LastModified.getDate() === day
-  );
+  // const objectList = data.Contents.filter(item =>
+  //   item.LastModified.getMonth() === month - 1
+  //   && item.LastModified.getDate() === day
+  // );
   //console.log(objectList);
-  return objectList;
+  return data.Contents;
 }
 
 const getObject = async (objectKey) => {
@@ -115,7 +116,7 @@ exports.getObjectsFromList = async (objectList, sqlExpression) => {
   // objectList.map((item) => {
   //   getObject(item.Key)
   // });
-
+  console.log('@@@@@',objectList);
   const myPromiseList = objectList.map(async (item) => {
     return selectObjectContentFromS3(item.Key, sqlExpression)
   });

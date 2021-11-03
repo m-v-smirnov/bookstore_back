@@ -23,11 +23,7 @@ transport.on('rotate', async function (oldFilename, newFilename) {
     console.log('here we rotate');
     await uploadFile(oldFilename);
     await unlinkFile(oldFilename);
-    
-    // const sqlExpression = 'SELECT d.* FROM S3Object AS d WHERE d.status=304';
-    // const objectList = await requestListObjects(11,2);
-    // await getObjectsFromList(objectList,sqlExpression);
-
+  
   } catch (error) {
     console.log(error);
   }

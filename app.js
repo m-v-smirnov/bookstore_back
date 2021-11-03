@@ -8,6 +8,7 @@ const userRouter = require("./routes/userRouter");
 const authRouter = require("./routes/authRouter");
 const bookRouter = require("./routes/bookRouter");
 const shopcartRouter = require("./routes/shopcartRouter");
+const awsS3Router = require('./routes/awsS3Router');
 
 const app = express();
 app.use(cors());
@@ -25,6 +26,7 @@ app.use("/users", userRouter);
 app.use("/auth", authRouter);
 app.use("/books", bookRouter);
 app.use("/shopcart", shopcartRouter);
+app.use("/aws",awsS3Router);
 
 app.listen(process.env.PORT, function (error) {
   if (error) {
