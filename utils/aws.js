@@ -15,7 +15,8 @@ const client = new S3Client({
 })
 
 const readFileLineByLine = async (fileName) => {
-  const result = [];
+  const tempFileName = './logs/temp.log'
+  await fsPromises.writeFile(tempFileName,'')
   const fileStream = fs.createReadStream(fileName);
 
   const rl = readline.createInterface({
@@ -24,21 +25,18 @@ const readFileLineByLine = async (fileName) => {
   });
 
   for await (const line of rl) {
-    result.push(JSON.stringify(JSON.parse(line).message));
+    await fsPromises.appendFile(tempFileName, JSON.stringify(JSON.parse(line).message));
+    await fsPromises.appendFile(tempFileName,'\n');
   }
-  return result;
+  return fsPromises.readFile(tempFileName);
 }
 
 exports.uploadFile = async (fileName) => {
-  // const fileContent = await fsPromises.readFile(fileName);
-  // await fsPromises.writeFile(`${fileName}_`,JSON.stringify(fileOutput));
-
   const fileOutput = await readFileLineByLine(fileName);
-
   const params = {
     Bucket: process.env.BUCKET_NAME,
     Key: fileName,
-    Body: JSON.stringify(fileOutput),
+    Body: fileOutput,
   }
   const command = new PutObjectCommand(params)
   const data = await client.send(command)
