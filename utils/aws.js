@@ -1,7 +1,7 @@
 const fs = require("fs");
 const readline = require('readline');
 const util = require('util')
-const { S3Client, PutObjectCommand, SelectObjectContentCommand, ListObjectsCommand, GetObjectCommand , ListObjectsV2Command} = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, SelectObjectContentCommand, ListObjectsCommand, GetObjectCommand, ListObjectsV2Command } = require("@aws-sdk/client-s3");
 
 const fsPromises = fs.promises;
 exports.unlinkFile = util.promisify(fs.unlink);
@@ -16,7 +16,7 @@ const client = new S3Client({
 
 const readFileLineByLine = async (fileName) => {
   const tempFileName = './logs/temp.log'
-  await fsPromises.writeFile(tempFileName,'')
+  await fsPromises.writeFile(tempFileName, '')
   const fileStream = fs.createReadStream(fileName);
 
   const rl = readline.createInterface({
@@ -26,7 +26,7 @@ const readFileLineByLine = async (fileName) => {
 
   for await (const line of rl) {
     await fsPromises.appendFile(tempFileName, JSON.stringify(JSON.parse(line).message));
-    await fsPromises.appendFile(tempFileName,'\n');
+    await fsPromises.appendFile(tempFileName, '\n');
   }
   return fsPromises.readFile(tempFileName);
 }
@@ -87,7 +87,7 @@ const selectObjectContentFromS3 = async (objectKey, sqlExpression) => {
     }
     const command = new SelectObjectContentCommand(params);
     const data = await client.send(command);
-    
+
     const records = [];
 
     const events = data.Payload;
@@ -95,16 +95,15 @@ const selectObjectContentFromS3 = async (objectKey, sqlExpression) => {
       if (event.Records) {
         records.push(event.Records.Payload);
       } else if (event.Stats) {
-        // handle Stats event
       } else if (event.Progress) {
-        // handle Progress event
       } else if (event.Cont) {
-        // handle Cont event
       } else if (event.End) {
-        // handle End event
-        // let planetString = Buffer.concat(records).toString('utf8').slice(0,-1);
-        let planetString = Buffer.concat(records).toString('utf8');
-        await fsPromises.writeFile(objectKey,planetString);
+        const planetString = Buffer.concat(records).toString('utf8');
+        console.log('planetString',planetString);
+        
+        //await fsPromises.writeFile(objectKey, planetString);
+
+        return planetString;
       }
     }
   } catch (error) {
@@ -113,13 +112,9 @@ const selectObjectContentFromS3 = async (objectKey, sqlExpression) => {
 }
 
 exports.getObjectsFromList = async (objectList, sqlExpression) => {
-  // objectList.map((item) => {
-  //   getObject(item.Key)
-  // });
-  // console.log('@@@@@',objectList);
   const myPromiseList = objectList.map(async (item) => {
     return selectObjectContentFromS3(item.Key, sqlExpression)
   });
 
-  const res = await Promise.allSettled(myPromiseList);
+  return Promise.allSettled(myPromiseList);
 }

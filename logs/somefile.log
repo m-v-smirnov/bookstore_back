@@ -1,9 +1,0 @@
-{"level":"info","message":"/books/616431b7bd0217546d106d17/get-rating"}
-{"level":"info","message":"/books/616431b7bd0217546d106d17"}
-{"level":"info","message":"/books/genres"}
-{"level":"info","message":"/books?page=1&genreId=&priceMax=Infinity&priceMin=0&sortingString=default"}
-{"level":"info","message":"/books?page=1&genreId=615e9272bb2d3e933206ed55&priceMax=Infinity&priceMin=0&sortingString=default"}
-{"level":"info","message":"/static/images/443f0e8999d661fb4adcc6ac8b1b35bc"}
-{"level":"info","message":"/static/images/9dc0b6ee921fca3f7978a8b897f0d7af"}
-{"level":"info","message":"/static/images/a1a5076e405b0678cfcc3e8a8714b8f8"}
-{"level":"info","message":"/books?page=1&genreId=&priceMax=Infinity&priceMin=0&sortingString=default"}
